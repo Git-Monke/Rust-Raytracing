@@ -1,52 +1,51 @@
-use crate::ray::Ray;
-use crate::vec3::Vec3;
+pub mod hit_record;
+pub mod sphere;
 
-struct HitRecord {
-    point: Vec3,
-    normal: Vec3,
-    time: f32,
+use hit_record::HitRecord;
+use sphere::Sphere;
+
+use crate::{ray::Ray, vec3::Vec3};
+
+pub enum Hittable {
+    Sphere(Sphere),
 }
 
-pub struct Sphere {
-    center: Vec3,
-    radius: f32,
-}
-
-// , hit_record: &mut HitRecord
-impl Sphere {
-    pub fn new(center: Vec3, radius: f32) -> Self {
-        Sphere { center, radius }
+impl Hittable {
+    pub fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+        match self {
+            Hittable::Sphere(object) => object.hit(&ray, t_min, t_max, hit_record),
+        }
     }
 
-    pub fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> bool {
-        let center = self.center;
-        let radius = self.radius;
+    pub fn sphere(center: Vec3, radius: f32) -> Hittable {
+        Hittable::Sphere(Sphere::new(center, radius))
+    }
+}
 
-        let oc = ray.origin - center;
-        let a = ray.direction.length_squared();
-        let half_b = ray.direction.dot(&oc);
-        let c = oc.length_squared() - radius * radius;
+pub struct HittableList {
+    objects: Vec<Hittable>,
+}
 
-        let discrim = half_b * half_b - a * c;
+impl HittableList {
+    pub fn new() -> Self {
+        HittableList { objects: vec![] }
+    }
 
-        if discrim < 0.0 {
-            return false;
-        }
+    pub fn add(&mut self, object: Hittable) {
+        self.objects.push(object);
+    }
 
-        let sqrtd = discrim.sqrt();
-        let mut root = (-half_b - sqrtd) / a;
+    pub fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+        let mut hit = false;
+        let mut smallest_t = t_max;
 
-        if root < t_min || t_max < root {
-            root = (-half_b + sqrtd) / a;
-            if root < t_min || t_max < root {
-                return false;
+        for object in self.objects.iter() {
+            if object.hit(&ray, t_min, smallest_t, hit_record) {
+                hit = true;
+                smallest_t = hit_record.time;
             }
         }
 
-        // hit_record.time = root;
-        // hit_record.point = ray.at(root);
-        // hit_record.normal = (hit_record.point - center) / radius;
-
-        true
+        hit
     }
 }
