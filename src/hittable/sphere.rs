@@ -1,15 +1,21 @@
 use crate::hittable::HitRecord;
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
 pub struct Sphere {
     center: Vec3,
     radius: f32,
+    material: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32) -> Self {
-        Sphere { center, radius }
+    pub fn new(center: Vec3, radius: f32, material: Material) -> Self {
+        Sphere {
+            center,
+            radius,
+            material,
+        }
     }
 
     pub fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
@@ -39,6 +45,7 @@ impl Sphere {
 
         hit_record.time = root;
         hit_record.point = ray.at(root);
+        hit_record.material = self.material;
 
         let normal = (hit_record.point - center) / radius;
         hit_record.set_normal(&ray, &normal);

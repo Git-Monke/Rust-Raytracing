@@ -1,10 +1,12 @@
 pub mod camera;
 pub mod hittable;
+pub mod material;
 pub mod ray;
 pub mod vec3;
 
 use camera::Camera;
 use hittable::{hit_record::HitRecord, Hittable, HittableList};
+use material::Material;
 use rand::Rng;
 use ray::Ray;
 use std::f32::consts::PI;
@@ -28,30 +30,30 @@ fn write_color(
 ) -> Result<(), Error> {
     let scale = 1.0 / samples_per_pixel as f32;
     let final_color = pixel_color * scale;
-    writeln!(writer, "{}", final_color.clamped())
+    writeln!(writer, "{}", final_color.as_color_triplet())
 }
 
 fn ray_color(ray: &Ray, world: &HittableList, depth: i32) -> Color {
     let mut record = HitRecord::new();
 
     if depth <= 0 {
-        return Color::new(0.0, 0.0, 0.0);
+        return Color::new(1.0, 1.0, 1.0);
     }
 
     if world.hit(ray, 0.001, INFINITY, &mut record) {
-        let target = record.point + record.normal + Vec3::random_unit_vec();
+        let (was_scattered, scattered_ray, color) = record.material.scatter(ray, &record);
 
-        return ray_color(
-            &Ray::new(record.point, target - record.point),
-            world,
-            depth - 1,
-        ) * 0.5;
+        if was_scattered {
+            return color * ray_color(&scattered_ray, world, depth - 1);
+        }
+
+        return Color::new(1.0, 1.0, 1.0);
     }
 
     let unit = ray.direction.unit();
     let t = 0.5 * (1.0 + unit.y);
 
-    Color::from_percent(1.0, 1.0, 1.0) * (1.0 - t) + Color::from_percent(0.5, 0.7, 1.0) * t
+    Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
 }
 
 fn main() -> Result<(), Error> {
@@ -59,9 +61,9 @@ fn main() -> Result<(), Error> {
     let aspect_ratio: f32 = 16.0 / 9.0;
 
     // Image Settings
-    let image_width: i32 = 500;
+    let image_width: i32 = 2000;
     let image_height: i32 = (image_width as f32 / aspect_ratio) as i32;
-    let samples_per_pixel = 100;
+    let samples_per_pixel = 500;
     let depth = 10;
 
     // File formatting
@@ -76,10 +78,30 @@ fn main() -> Result<(), Error> {
 
     // World generation
     let mut world = HittableList::new();
-    world.add(Hittable::sphere(Vec3::new(0.0, 0.0, -1.0), 0.5));
-    world.add(Hittable::sphere(Vec3::new(2.0, 0.0, -2.0), 0.5));
-    world.add(Hittable::sphere(Vec3::new(-2.0, 1.0, -2.0), 0.5));
-    world.add(Hittable::sphere(Vec3::new(0.0, -100.5, -1.0), 100.0));
+
+    world.add(Hittable::sphere(
+        Vec3::new(0.0, 0.0, -1.0),
+        0.5,
+        Material::metal(Color::new(1.0, 0.1, 0.1), 0.0),
+    ));
+
+    world.add(Hittable::sphere(
+        Vec3::new(1.2, 0.0, -1.2),
+        0.5,
+        Material::metal(Color::new(0.8, 0.1, 0.8), 0.3),
+    ));
+
+    world.add(Hittable::sphere(
+        Vec3::new(-1.2, 0.0, -1.2),
+        0.5,
+        Material::metal(Color::new(0.1, 0.1, 1.0), 0.8),
+    ));
+
+    world.add(Hittable::sphere(
+        Vec3::new(0.0, -100.5, -1.0),
+        100.0,
+        Material::lambertian(Color::new(0.5, 0.5, 0.5)),
+    ));
 
     for i in (0..image_height).rev() {
         print!(

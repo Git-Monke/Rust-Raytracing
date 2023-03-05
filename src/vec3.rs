@@ -87,6 +87,18 @@ impl Mul<f32> for Vec3 {
     }
 }
 
+impl Mul<Vec3> for f32 {
+    type Output = Vec3;
+
+    fn mul(self, other: Vec3) -> Vec3 {
+        Vec3 {
+            x: other.x * self,
+            y: other.y * self,
+            z: other.z * self,
+        }
+    }
+}
+
 impl MulAssign<f32> for Vec3 {
     fn mul_assign(&mut self, other: f32) {
         *self = Self {
@@ -262,6 +274,15 @@ impl Vec3 {
     pub fn random_unit_vec() -> Vec3 {
         Vec3::rand_in_unit_sphere().unit()
     }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        return self[0].abs() < s && self[1].abs() < s && self[2].abs() < s;
+    }
+
+    pub fn reflect(v: Vec3, n: Vec3) -> Self {
+        v - 2.0 * v.dot(&n) * n
+    }
 }
 
 fn clamp(n: f32, min: f32, max: f32) -> f32 {
@@ -275,12 +296,8 @@ fn clamp(n: f32, min: f32, max: f32) -> f32 {
 }
 
 impl Color {
-    pub fn from_percent(r: f32, g: f32, b: f32) -> Self {
-        Self {
-            x: r * 255.0,
-            y: g * 255.0,
-            z: b * 255.0,
-        }
+    pub fn as_color_triplet(&self) -> String {
+        format!("{} {} {}", self.x * 255.0, self.y * 255.0, self.z * 255.0)
     }
 
     pub fn clamped(&self) -> Self {

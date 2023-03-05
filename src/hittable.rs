@@ -4,7 +4,7 @@ pub mod sphere;
 use hit_record::HitRecord;
 use sphere::Sphere;
 
-use crate::{ray::Ray, vec3::Vec3};
+use crate::{material::Material, ray::Ray, vec3::Vec3};
 
 pub enum Hittable {
     Sphere(Sphere),
@@ -17,8 +17,8 @@ impl Hittable {
         }
     }
 
-    pub fn sphere(center: Vec3, radius: f32) -> Hittable {
-        Hittable::Sphere(Sphere::new(center, radius))
+    pub fn sphere(center: Vec3, radius: f32, material: Material) -> Hittable {
+        Hittable::Sphere(Sphere::new(center, radius, material))
     }
 }
 
