@@ -5,6 +5,7 @@ pub mod ray;
 pub mod vec3;
 
 use camera::Camera;
+use hittable::sphere;
 use hittable::{hit_record::HitRecord, Hittable, HittableList};
 use material::Material;
 use rand::Rng;
@@ -63,7 +64,7 @@ fn main() -> Result<(), Error> {
     // Image Settings
     let image_width: i32 = 500;
     let image_height: i32 = (image_width as f32 / aspect_ratio) as i32;
-    let samples_per_pixel = 100;
+    let samples_per_pixel = 500;
     let depth = 10;
 
     // File formatting
@@ -74,34 +75,54 @@ fn main() -> Result<(), Error> {
     writeln!(writer, "{image_format}")?;
 
     // Camera
-    let camera = Camera::new(16.0 / 9.0, 2.0, Vec3::new(0.0, 0.0, 0.0));
+    let look_from = Vec3::new(15.0, 6.0, 15.0);
+    let look_at = Vec3::new(12.0, 1.0, 12.0);
+    let up_vector = Vec3::new(0.0, 1.0, 0.0);
+
+    let focus_dist = (look_from - look_at).length();
+    let aperture = 0.5;
+
+    let camera = Camera::new(
+        16.0 / 9.0,
+        look_from,
+        look_at,
+        up_vector,
+        80.0,
+        aperture,
+        focus_dist,
+    );
 
     // World generation
     let mut world = HittableList::new();
 
     world.add(Hittable::sphere(
-        Vec3::new(0.0, 0.0, -1.0),
-        -0.5,
-        Material::dialectric(1.5),
-    ));
-
-    world.add(Hittable::sphere(
-        Vec3::new(1.2, 0.0, -1.2),
-        0.5,
-        Material::metal(Color::new(0.8, 0.1, 0.8), 0.3),
-    ));
-
-    world.add(Hittable::sphere(
-        Vec3::new(-1.2, 0.0, -1.2),
-        0.5,
-        Material::metal(Color::new(0.1, 0.1, 1.0), 0.8),
-    ));
-
-    world.add(Hittable::sphere(
-        Vec3::new(0.0, -100.5, -1.0),
-        100.0,
+        Vec3::new(0.0, -1000.0, 0.0),
+        1000.0,
         Material::lambertian(Color::new(0.5, 0.5, 0.5)),
     ));
+
+    let sphere_count = 10;
+
+    for i in 0..sphere_count {
+        for j in 0..sphere_count {
+            let material_num = rand();
+            let material;
+
+            if material_num > 0.66 {
+                material = Material::lambertian(Color::random());
+            } else if material_num > 0.33 {
+                material = Material::metal(Color::random(), rand());
+            } else {
+                material = Material::dialectric(1.0 + rand());
+            }
+
+            world.add(Hittable::sphere(
+                Vec3::new(i as f32 * 2.0, 1.0, j as f32 * 2.0),
+                1.0,
+                material,
+            ));
+        }
+    }
 
     for i in (0..image_height).rev() {
         print!(

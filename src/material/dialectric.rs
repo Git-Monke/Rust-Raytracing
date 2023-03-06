@@ -23,7 +23,7 @@ impl Dialectric {
     fn reflectance(cosine: f32, refraction: f32) -> f32 {
         let mut r0 = (1.0 - refraction) / (1.0 + refraction);
         r0 *= r0;
-        r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
+        r0 + (1.0 - r0) * ((1.0 - cosine).powi(5))
     }
 
     pub fn scatter(&self, ray: &Ray, record: &HitRecord) -> (bool, Ray, Color) {

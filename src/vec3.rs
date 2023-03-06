@@ -120,6 +120,18 @@ impl Div<f32> for Vec3 {
     }
 }
 
+impl Div<Vec3> for Vec3 {
+    type Output = Self;
+
+    fn div(self, other: Vec3) -> Self {
+        Self {
+            x: self.x * (1.0 / other.x),
+            y: self.y * (1.0 / other.y),
+            z: self.z * (1.0 / other.z),
+        }
+    }
+}
+
 impl DivAssign<f32> for Vec3 {
     fn div_assign(&mut self, other: f32) {
         let reciprocal = 1.0 / other;
@@ -296,6 +308,16 @@ impl Vec3 {
         let r_out_perp = etai_over_etat * (uv + cos_theta * n);
         let r_out_paralell = -((1.0 - r_out_perp.length_squared()).abs()).sqrt() * n;
         r_out_perp + r_out_paralell
+    }
+
+    pub fn random_in_unit_disk() -> Vec3 {
+        let mut rand_vec = Vec3::new(rand(), rand(), 0.0);
+
+        while rand_vec.length_squared() >= 1.0 {
+            rand_vec = Vec3::new(rand(), rand(), 0.0);
+        }
+
+        rand_vec
     }
 }
 
