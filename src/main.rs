@@ -61,9 +61,9 @@ fn main() -> Result<(), Error> {
     let aspect_ratio: f32 = 16.0 / 9.0;
 
     // Image Settings
-    let image_width: i32 = 2000;
+    let image_width: i32 = 500;
     let image_height: i32 = (image_width as f32 / aspect_ratio) as i32;
-    let samples_per_pixel = 500;
+    let samples_per_pixel = 100;
     let depth = 10;
 
     // File formatting
@@ -81,8 +81,8 @@ fn main() -> Result<(), Error> {
 
     world.add(Hittable::sphere(
         Vec3::new(0.0, 0.0, -1.0),
-        0.5,
-        Material::metal(Color::new(1.0, 0.1, 0.1), 0.0),
+        -0.5,
+        Material::dialectric(1.5),
     ));
 
     world.add(Hittable::sphere(
