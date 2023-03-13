@@ -2,6 +2,7 @@ use crate::hittable::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
+use std::rc::Rc;
 
 pub struct Sphere {
     center: Vec3,
@@ -45,7 +46,7 @@ impl Sphere {
 
         hit_record.time = root;
         hit_record.point = ray.at(root);
-        hit_record.material = self.material;
+        hit_record.material = Rc::new(self.material);
 
         let normal = (hit_record.point - center) / radius;
         hit_record.set_normal(&ray, &normal);

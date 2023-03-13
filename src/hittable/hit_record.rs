@@ -1,12 +1,14 @@
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Color, Vec3};
+use std::rc::Rc;
+
 pub struct HitRecord {
     pub point: Vec3,
     pub normal: Vec3,
     pub time: f32,
     pub front_face: bool,
-    pub material: Material,
+    pub material: Rc<Material>,
 }
 
 impl HitRecord {
@@ -16,7 +18,7 @@ impl HitRecord {
             normal: Vec3::new(0.0, 0.0, 0.0),
             time: 0.0,
             front_face: true,
-            material: Material::lambertian(Color::new(0.0, 0.0, 0.0)),
+            material: Rc::new(Material::lambertian(Color::new(0.0, 0.0, 0.0))),
         }
     }
 
